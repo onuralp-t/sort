@@ -52,13 +52,13 @@ __attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds);
 // ------------ INTERNAL
 typedef union _LARGE_INTEGER LARGE_INTEGER;
 #ifdef _WIN32
-    WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks);
+    // site:learn.microsoft.com/en-us/windows/ "Kernel32.dll"
+    WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks); // these are from kernel32.dll so no need to explicitly link against
     WINAPI_ int32_t QueryPerformanceFrequency(LARGE_INTEGER* ticks);
 
     WINAPI_ void Sleep(unsigned long int miliseconds);
 #endif // _WIN32
 // ============ TIME ================
-
 
 #endif // COMMON_H_
 

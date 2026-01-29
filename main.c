@@ -1,59 +1,32 @@
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef U32_MAX
-#define U32_MAX 0xFFFFFFFF
-#endif
-#ifndef BCRYPT_USE_SYSTEM_PREFERRED_RNG
-#define BCRYPT_USE_SYSTEM_PREFERRED_RNG 2
-#endif
+#define COMMON_IMPLEMENTATION
+#include "common.h"
 
-#define WINAPI_ __attribute((dllimport,stdcall))
-WINAPI_ int32_t BCryptGenRandom(void* z0, uint8_t* buf, uint32_t bufsize, uint32_t flags);
-
-uint32_t rand32(uint32_t min, uint32_t max)
+int qsort_stdlib_comparator(const void* a, const void* b)
 {
-    uint32_t val = 0;
-    BCryptGenRandom(NULL, (uint8_t*)&val, sizeof(val), BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-    double normal = ((double)val) / U32_MAX;
-    assert(max > min);
-    return (uint32_t)(normal * (max - min)) + min;
+    return (*(int64_t*)a > *(int64_t*)b) - (*(int64_t*)a < *(int64_t*)b);
+}
+void qsort_stdlib(int64_t *i64_view, int64_t i64_view_count, int (*comparator)(const void *, const void *) )
+{
+    qsort(i64_view, i64_view_count, sizeof(int64_t), comparator);
 }
 
-void rand32_write(const char* dst_path, uint32_t buffer_count)
+int main(void)
 {
-    uint32_t *array = (uint32_t*)malloc(sizeof(uint32_t) * buffer_count);
-    for (uint32_t i = 0; i < buffer_count; ++i)
-    {
-        array[i] = rand32(0, U32_MAX);
-    }
+    int64_t data_size = 0;
+    uint8_t* data;
+    file_read("out.bin", &data, &data_size);
+    int64_t *i64_view = (int64_t*)data;
+    int64_t i64_view_count = data_size / sizeof(int64_t);
 
-    FILE *f = fopen(dst_path, "wb");
-    fwrite(array, sizeof(uint32_t), buffer_count, f);
-    fclose(f);
-}
+    int64_t *qsort_stdlib_arr = (int64_t*)malloc(i64_view_count * sizeof(int64_t));
+    int64_t qsort_stdlib_arr_size = i64_view_count;
 
-#define ARRAYLEN(x) (int)(sizeof((x)) / sizeof((x)[0]))
+    memcpy(qsort_stdlib_arr, i64_view, qsort_stdlib_arr_size * sizeof(int64_t));
 
-int main(int argc, char* argv[])
-{
-    if (argc == 1) {printf("USAGE: main.exe --generate\n");}
-    else if (argc == 2 && strcmp(argv[2-1], "--generate") == 0) {rand32_write("out.bin", 1000);}
+    qsort_stdlib(qsort_stdlib_arr, qsort_stdlib_arr_size, qsort_stdlib_comparator);
 
-    alignas(uint32_t) uint8_t data[] = {
-        #embed "out.bin" if_empty(0) // https://en.cppreference.com/w/c/preprocessor/embed
-    };
-
-    uint32_t *u32_view = (uint32_t*)data;
-    uint32_t u32_count = ARRAYLEN(data) / 4;
-    
-    for (uint32_t i = 0; i < u32_count; ++i)
-    {
-        printf("[%d] = %u\n", i, u32_view[i]);
-    }
-
+    printarr(qsort_stdlib_arr, qsort_stdlib_arr_size);
 }

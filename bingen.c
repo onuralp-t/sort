@@ -38,26 +38,23 @@ int main(int argc, char* argv[])
     if (next_arg(&argc, &argv)) {
         char* arg = *argv;
         while (*arg) {
-            if (!isdigit(*arg)) {printf("%s", usage_message); return 0;};
+            if (!isdigit(*arg)) {printf("ERROR: first arg is not a number \n%s", usage_message); return 0;};
             ++arg;
         } // is number
         PRN_count = atoi(*argv);
 
-        if (next_arg(&argc, &argv))
+        if (next_arg(&argc, &argv) && strcmp(*argv, "-o") == 0)
         {
-            if (strcmp(*argv, "-o") == 0)
-            {
-                if (next_arg(&argc, &argv)) {
-                    char* arg = *argv;
-                    while (*arg) {
-                        if (!isalnum(*arg)) {printf("%s", usage_message); return 0;};
-                        ++arg;
-                    } // is alnum
-                    rand_i64_write(*argv, PRN_count, &rng);
-                    printf("INFO: wrote `%llu` randomly generated 64-bit numbers to `%s`\n", PRN_count, *argv);
-                }
-                else {printf("%s", usage_message);}
+            if (next_arg(&argc, &argv)) {
+                char* arg = *argv;
+                while (*arg) {
+                    if (!isalnum(*arg)) {printf("ERROR: path after -o isn't alphanumeric \n%s", usage_message); return 0;};
+                    ++arg;
+                } // is alnum
+                rand_i64_write(*argv, PRN_count, &rng);
+                printf("INFO: wrote `%llu` randomly generated 64-bit numbers to `%s` \n", PRN_count, *argv);
             }
+            else {printf("ERROR: no path provided after -o \n%s", usage_message);}
         }
         else
         {

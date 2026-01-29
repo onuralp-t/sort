@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
         rand_i64_write("out.bin", atoi(argv[2-1]), &rng);
         printf("INFO: wrote `%d` randomly generated 64-bit numbers to `out.bin`\n", atoi(argv[2-1]));
     }
-    else {printf("USAGE: bingen.exe <number>\n");}
+    else {printf("USAGE: ./bingen <number>\n");}
 
     return 0;
 }

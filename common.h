@@ -23,6 +23,14 @@ int main(void)
 bool file_read(const char *source_filename, uint8_t** filebuffer, int64_t *filesize);
 int64_t digit_count(int64_t v);
 void printarr_i64(int64_t *arr, int64_t arr_size);
+
+typedef struct xo_state
+{
+	uint64_t s[4];
+} xo_state;
+void srand_xo(xo_state *state, uint64_t seed);
+uint64_t rand_xo(xo_state *state);
+
 #endif // COMMON_H_
 
 #ifdef COMMON_IMPLEMENTATION
@@ -89,6 +97,49 @@ void printarr_i64(int64_t *arr, int64_t arr_size)
     {
         printf("[%*lld] = %lld\n", digits, i, arr[i]);
     }
+}
+
+static inline uint64_t splitmix64(uint64_t *state)
+{
+	uint64_t result = (*state += 0x9E3779B97F4A7C15);
+	result = (result ^ (result >> 30)) * 0xBF58476D1CE4E5B9;
+	result = (result ^ (result >> 27)) * 0x94D049BB133111EB;
+	return result ^ (result >> 31);
+}
+
+static inline uint64_t rol64(uint64_t x, int k)
+{
+	return (x << k) | (x >> (64 - k));
+}
+
+uint64_t rand_xo(xo_state *state)
+{
+	uint64_t *s = state->s;
+	uint64_t const result = rol64(s[0] + s[3], 23) + s[0];
+	uint64_t const t = s[1] << 17;
+
+	s[2] ^= s[0];
+	s[3] ^= s[1];
+	s[1] ^= s[2];
+	s[0] ^= s[3];
+
+	s[2] ^= t;
+	s[3] = rol64(s[3], 45);
+
+	return result;
+}
+
+void srand_xo(xo_state *state, uint64_t seed)
+{
+	uint64_t smstate = seed;
+
+	uint64_t tmp = splitmix64(&smstate);
+	state->s[0] = (uint32_t)tmp;
+	state->s[1] = (uint32_t)(tmp >> 32);
+
+	tmp = splitmix64(&smstate);
+	state->s[2] = (uint32_t)tmp;
+	state->s[3] = (uint32_t)(tmp >> 32);
 }
 
 

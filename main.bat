@@ -1,7 +1,7 @@
 @echo off
 set CFLAGS=^
 -Wall -Wextra -pedantic ^
--std=c23
+-O3 -s -std=c23
 
 set linking=-lbcrypt
 

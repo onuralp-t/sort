@@ -8,28 +8,54 @@
 
 int main(void)
 {
-    int64_t data_size = 0;
-    uint8_t* data;
-    file_read("out.bin", &data, &data_size);
-    int64_t *i64_view = (int64_t*)data;
-    int64_t i64_view_count = data_size / sizeof(int64_t);
+    State state = {0};
+    file_read("out.bin", &state.data_u8, &state.count_u8);
+    state.count_i64 = state.count_u8 / sizeof(int64_t);
+
+    State qsort = {0};
+    state_copy(&qsort, &state);
 }
 */
 
 #include <stdint.h>
 
 #define ARRAY_LEN(x) (sizeof((x))/sizeof((x)[0]))
+#define WINAPI_ __attribute((dllimport,stdcall))
 
 bool file_read(const char *source_filename, uint8_t** filebuffer, int64_t *filesize);
 int64_t digit_count(int64_t v);
 void printarr_i64(int64_t *arr, int64_t arr_size);
 
-typedef struct xo_state
-{
-	uint64_t s[4];
-} xo_state;
+// ============ RAND ================
+typedef struct xo_state { uint64_t s[4]; } xo_state;
+
 void srand_xo(xo_state *state, uint64_t seed);
+
 uint64_t rand_xo(xo_state *state);
+// ============ RAND ================
+
+// ============ TIME ================
+typedef enum Times
+{
+    TIME_SECONDS = 0,
+    TIME_MILISECONDS,
+    TIME_MICROSECONDS,
+    TIME_NANOSECONDS,
+} Times;
+
+__attribute__((always_inline)) inline void time_count(uint64_t *start);
+
+double time_get_time(uint64_t end, uint64_t start, Times kind);
+
+__attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds);
+
+// ------------ INTERNAL
+typedef union _LARGE_INTEGER LARGE_INTEGER;
+WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks);
+
+WINAPI_ void Sleep(unsigned long int miliseconds);
+// ============ TIME ================
+
 
 #endif // COMMON_H_
 
@@ -99,6 +125,8 @@ void printarr_i64(int64_t *arr, int64_t arr_size)
     }
 }
 
+// ============ RAND ================
+
 static inline uint64_t splitmix64(uint64_t *state)
 {
 	uint64_t result = (*state += 0x9E3779B97F4A7C15);
@@ -141,6 +169,35 @@ void srand_xo(xo_state *state, uint64_t seed)
 	state->s[2] = (uint32_t)tmp;
 	state->s[3] = (uint32_t)(tmp >> 32);
 }
+// ============ RAND ================
 
+// ============ TIME ================
+
+__attribute__((always_inline)) inline void time_count(uint64_t *start)
+{
+    QueryPerformanceCounter((LARGE_INTEGER*)&(*start));
+}
+
+__attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds)
+{
+    Sleep(miliseconds);
+}
+
+double time_get_time(uint64_t end, uint64_t start, Times kind)
+{
+    uint64_t frequency;
+    QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
+    double elapsed_seconds = (double)(end - start) / (double)frequency;
+    switch (kind)
+    {
+        case TIME_SECONDS:     {return elapsed_seconds;}
+        case TIME_MILISECONDS: {return elapsed_seconds * 1000.0;}
+        case TIME_MICROSECONDS:{return elapsed_seconds * 1000000.0;}
+        case TIME_NANOSECONDS: {return elapsed_seconds * 1000000000.0;}
+        default: {return -1;}
+    }
+}
+
+// ============ TIME ================
 
 #endif // COMMON_IMPLEMENTATION

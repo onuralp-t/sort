@@ -22,7 +22,7 @@ int main(void)
 
 bool file_read(const char *source_filename, uint8_t** filebuffer, int64_t *filesize);
 int64_t digit_count(int64_t v);
-void printarr(int64_t *arr, int64_t arr_size);
+void printarr_i64(int64_t *arr, int64_t arr_size);
 #endif // COMMON_H_
 
 #ifdef COMMON_IMPLEMENTATION
@@ -82,9 +82,9 @@ int64_t digit_count(int64_t v)
     return 19;
 }
 
-void printarr(int64_t *arr, int64_t arr_size)
+void printarr_i64(int64_t *arr, int64_t arr_size)
 {
-    uint8_t digits = digit_count(arr_size) - 1;
+    uint8_t digits = digit_count(arr_size);
     for (int64_t i = 0; i < arr_size; ++i)
     {
         printf("[%*lld] = %lld\n", digits, i, arr[i]);

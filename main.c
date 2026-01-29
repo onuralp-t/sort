@@ -8,25 +8,42 @@ int qsort_stdlib_comparator(const void* a, const void* b)
 {
     return (*(int64_t*)a > *(int64_t*)b) - (*(int64_t*)a < *(int64_t*)b);
 }
-void qsort_stdlib(int64_t *i64_view, int64_t i64_view_count, int (*comparator)(const void *, const void *) )
+void qsort_stdlib(int64_t *data_i64, int64_t data_i64_count, int (*comparator)(const void *, const void *) )
 {
-    qsort(i64_view, i64_view_count, sizeof(int64_t), comparator);
+    qsort(data_i64, data_i64_count, sizeof(int64_t), comparator);
+}
+
+typedef struct State
+{
+    union {
+        uint8_t *data_u8;
+        int64_t *data_i64;
+    };
+
+    int64_t count_u8;
+    int64_t count_i64;
+    
+} State;
+
+void state_copy(State *dst, State *src)
+{
+    dst->data_u8 = (uint8_t*)malloc(src->count_u8);
+    dst->count_u8 = src->count_u8;
+    dst->count_i64 = src->count_u8 / sizeof(int64_t);
+
+    memcpy(dst->data_u8, src->data_u8, src->count_u8);
 }
 
 int main(void)
 {
-    int64_t data_size = 0;
-    uint8_t* data;
-    file_read("out.bin", &data, &data_size);
-    int64_t *i64_view = (int64_t*)data;
-    int64_t i64_view_count = data_size / sizeof(int64_t);
+    State state = {0};
+    file_read("out.bin", &state.data_u8, &state.count_u8);
+    state.count_i64 = state.count_u8 / sizeof(int64_t);
 
-    int64_t *qsort_stdlib_arr = (int64_t*)malloc(i64_view_count * sizeof(int64_t));
-    int64_t qsort_stdlib_arr_size = i64_view_count;
+    State qsort = {0};
+    state_copy(&qsort, &state);
 
-    memcpy(qsort_stdlib_arr, i64_view, qsort_stdlib_arr_size * sizeof(int64_t));
+    qsort_stdlib(qsort.data_i64, qsort.count_i64, qsort_stdlib_comparator);
 
-    qsort_stdlib(qsort_stdlib_arr, qsort_stdlib_arr_size, qsort_stdlib_comparator);
-
-    printarr(qsort_stdlib_arr, qsort_stdlib_arr_size);
+    printarr_i64(qsort.data_i64, qsort.count_i64);
 }

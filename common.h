@@ -53,6 +53,7 @@ __attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds);
 typedef union _LARGE_INTEGER LARGE_INTEGER;
 #ifdef _WIN32
     WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks);
+    WINAPI_ int32_t QueryPerformanceFrequency(LARGE_INTEGER* ticks);
 
     WINAPI_ void Sleep(unsigned long int miliseconds);
 #endif // _WIN32

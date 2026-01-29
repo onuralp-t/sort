@@ -1,5 +1,3 @@
-
-#include <windows.h>
 #define COMMON_IMPLEMENTATION
 #include "common.h"
 

@@ -51,9 +51,11 @@ __attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds);
 
 // ------------ INTERNAL
 typedef union _LARGE_INTEGER LARGE_INTEGER;
-WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks);
+#ifdef _WIN32
+    WINAPI_ int32_t QueryPerformanceCounter(LARGE_INTEGER* ticks);
 
-WINAPI_ void Sleep(unsigned long int miliseconds);
+    WINAPI_ void Sleep(unsigned long int miliseconds);
+#endif // _WIN32
 // ============ TIME ================
 
 
@@ -175,27 +177,39 @@ void srand_xo(xo_state *state, uint64_t seed)
 
 __attribute__((always_inline)) inline void time_count(uint64_t *start)
 {
-    QueryPerformanceCounter((LARGE_INTEGER*)&(*start));
+    #ifdef _WIN32
+        QueryPerformanceCounter((LARGE_INTEGER*)&(*start));
+    #elif
+    #error "non-windows timer not implemented :/"
+    #endif
 }
 
 __attribute__((always_inline)) inline void time_sleep_ms(uint32_t miliseconds)
 {
-    Sleep(miliseconds);
+    #ifdef _WIN32
+        Sleep(miliseconds);
+    #elif
+    #error "non-windows timer not implemented :/"
+    #endif
 }
 
 double time_get_time(uint64_t end, uint64_t start, Times kind)
 {
-    uint64_t frequency;
-    QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
-    double elapsed_seconds = (double)(end - start) / (double)frequency;
-    switch (kind)
-    {
-        case TIME_SECONDS:     {return elapsed_seconds;}
-        case TIME_MILISECONDS: {return elapsed_seconds * 1000.0;}
-        case TIME_MICROSECONDS:{return elapsed_seconds * 1000000.0;}
-        case TIME_NANOSECONDS: {return elapsed_seconds * 1000000000.0;}
-        default: {return -1;}
-    }
+    #ifdef _WIN32
+        uint64_t frequency;
+        QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
+        double elapsed_seconds = (double)(end - start) / (double)frequency;
+        switch (kind)
+        {
+            case TIME_SECONDS:     {return elapsed_seconds;}
+            case TIME_MILISECONDS: {return elapsed_seconds * 1000.0;}
+            case TIME_MICROSECONDS:{return elapsed_seconds * 1000000.0;}
+            case TIME_NANOSECONDS: {return elapsed_seconds * 1000000000.0;}
+            default: {return -1;}
+        }
+    #elif
+    #error "non-windows timer not implemented :/"
+    #endif
 }
 
 // ============ TIME ================

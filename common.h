@@ -92,7 +92,7 @@ int64_t digit_count(int64_t v)
 
 void printarr_i64(int64_t *arr, int64_t arr_size)
 {
-    uint8_t digits = digit_count(arr_size);
+    uint8_t digits = digit_count(arr_size-1);
     for (int64_t i = 0; i < arr_size; ++i)
     {
         printf("[%*lld] = %lld\n", digits, i, arr[i]);
